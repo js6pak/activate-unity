@@ -19,6 +19,7 @@ async function createManualActivationFile(unityPath) {
 async function activateManualLicense(unityPath, licenseData) {
     fs.writeFileSync('license.ulf', licenseData);
     const stdout = await executeUnity(unityPath, `-batchmode -nographics -quit -logFile "-" -manualLicenseFile license.ulf`);
+    fs.unlinkSync('license.ulf');
     if (!stdout.includes('Next license update check is after') && !stdout.includes('License file successfully loaded')) {
         throw new Error('Activation failed');
     }
