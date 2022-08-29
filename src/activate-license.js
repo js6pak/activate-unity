@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const path = require('path');
 const unity = require('./unity');
+const fs = require('fs');
 
 async function run() {
     try {
@@ -20,8 +21,12 @@ async function run() {
             await exec.exec('npm install puppeteer@"^13.x"', [], { cwd: path.join(__dirname, '..') }); // install puppeteer for current platform
             const licenseRobot = require('./license-robot');
             const licenseRequestFile = await unity.createManualActivationFile(unityPath);
-            const licenseData = await licenseRobot.getPersonalLicense(licenseRequestFile, unityUsername, unityPassword, unityAuthenticatorKey);
-            await unity.activateManualLicense(unityPath, licenseData);
+            try {
+                const licenseData = await licenseRobot.getPersonalLicense(licenseRequestFile, unityUsername, unityPassword, unityAuthenticatorKey);
+                await unity.activateManualLicense(unityPath, licenseData);
+            } finally {
+                fs.unlinkSync(licenseRequestFile);
+            }
         }
     } catch (error) {
         core.setFailed(error.message);
